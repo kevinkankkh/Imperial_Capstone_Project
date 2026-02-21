@@ -1,10 +1,9 @@
-# Imperial_Capstone_Project
 # 1.	Project overview
 This project is the capstone project of the Professional Certificate in Machine Learning and Artificial Intelligence of Imperial College Business School. It mimics a Bayesian optimisation-style competition, i.e. there is a black-box function, with initial data points provided to participants who will build a statistical surrogate model of the black-box function and acquisitions function to submit multiple rounds of intelligent queries to find the optimum solutions, using Bayesian optimization technique and limited total number of queries.
 Such setting mirrors real-world machine learning problem, of which the analytical expression of the underlying problem is unknown (i.e. black-box function) and cost to find such expression is costly (thereby the total number of queries is limited given the cost).
 This project serves as a practice exercise for participants to apply skills and knowledge acquired in this Certificate program to real-world problems.
 
-# 2.	Inputs and outputs
+# 2.	Data
 In this project, there are 8 black-box functions to optimise.
 ## Function 1: f: R2 ---> R 
 Detect likely contamination sources in a two-dimensional area, such as a radiation field, where only proximity yields a non-zero reading
@@ -30,9 +29,21 @@ The goal of this project is to find the maximum of these 8 black-box functions w
 Major challenges and constraints of this project 
 -	Given limited background information about the functions and high dimensional inputs (which make visualisation hard or even impossible), it is difficult to find the right surrogate model to approximate the unknown functions
 -	With limited number of queries, a balance between exploitation and exploration has to be stricken when deciding next query point 
--	The high dimensionality of certain functions would mean 
+-	The high dimensionality of certain functions would mean
+
 # 4.	Technical approach
-Across the first three query submissions, I used Gaussian Process as the surrogate model. For functions with low dimension inputs (e.g. 2D and 3D), I created scatter plots to visualize data distribution and trend so as to determine the appropriate kernels used in surrogate model. Major kernels used included Matern, RBF and White Noise. Parameters like lengthscale and nu are tuned based on functions descriptions and scatter plot observations. 
-To query the next point, I used grid search for low dimension cases and Bayesian Optimisation for high dimension cases due to the high computational costs of grid search in high dimension cases.
-Moreover, using Upper Confidence Bound (UCB) and Bayesian Optimisation to find next point in high dimension case is prone to picking boundary points as random points are concentrated near high boundary points, I applied a factor to kappa in classic UCB equation to scale down the impact of high uncertainty at boundary points which leads to the tendency of picking boundary points.  
-For functions with good results, I limited the search functions I limit the search location by creating a hypercube to search spaces near best performing inputs while the strategy to acquire next point focuses on exploration for functions with unsatisfactory results. 
+To solve the eight black-box optimisation problems, I adopted a sequential Bayesian Optimisation (BO) framework designed for data efficiency under limited query budgets. Since the analytical form of each function was unknown and evaluations were expensive (one query per function per week), a surrogate-assisted strategy was essential.
+
+Primarily, I modelled the objective using a Gaussian Process (GP) surrogate. The GP provided both a predictive mean and uncertainty estimate, enabling principled decision-making under uncertainty. Kernels were carefully chosen based on visualization of outputs and background information provided, and certain hyperparameters were optimised via marginal likelihood maximisation.
+
+In the initial phase, raw outputs were used directly. However, when certain functions exhibited sharp increases in objective values, kernel hyperparameter estimation became unstable. To address this, output normalisation was introduced to stabilise the optimisation landscape, improve length-scale estimation, and produce more reliable uncertainty quantification.
+
+Next-point selection was primarily governed by an Upper Confidence Bound (UCB) acquisition function. Early iterations employed a relatively high exploration parameter (κ) to encourage global search across uncertain regions. As more observations were collected, κ was gradually reduced to prioritise exploitation of high-performing regions identified by the surrogate. This adaptive exploration–exploitation balance improved convergence stability.
+
+Over successive iterations, the GP effectively acted as a structure detector, smoothing stochastic variability and identifying promising regions of the input space. Dense clusters of high-performing queries emerged in several functions, while low-value or inconsistent regions were progressively deprioritised. This iterative refine-and-update process was repeated weekly, allowing systematic improvement despite strict evaluation constraints.
+
+# 5. Model Card
+https://github.com/kevinkankkh/Imperial_Capstone_Project/blob/main/Model%20Card.md
+
+# 6. Datasheet
+https://github.com/kevinkankkh/Imperial_Capstone_Project/blob/main/Datasheet.md
